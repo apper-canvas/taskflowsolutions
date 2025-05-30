@@ -14,6 +14,7 @@ const MainFeature = () => {
   const [filter, setFilter] = useState('all') // all, active, completed
   const [editingTask, setEditingTask] = useState(null)
   const [loading, setLoading] = useState(false)
+const [showAddForm, setShowAddForm] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -73,6 +74,7 @@ const addTask = async (e) => {
       setTasks(prev => [createdTask, ...prev])
       setNewTask({ title: '', description: '', priority: 'medium' })
       toast.success('Task added successfully!')
+setShowAddForm(false) // Hide form after successful creation
     } catch (error) {
       console.error('Error creating task:', error)
       toast.error(error.message || 'Failed to create task')
@@ -251,86 +253,17 @@ const updateTask = async (id, updatedTaskData) => {
         </motion.div>
 
       {/* Add Task Form */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="task-card rounded-2xl p-4 sm:p-6 lg:p-8"
-      >
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="p-2 bg-gradient-to-r from-primary to-secondary rounded-xl">
-            <ApperIcon name="Plus" className="w-5 h-5 text-white" />
-          </div>
-          <h2 className="text-lg sm:text-xl font-semibold text-surface-800 dark:text-surface-200">Add New Task</h2>
-        </div>
-
-        <form onSubmit={addTask} className="space-y-4 sm:space-y-6">
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
-                Task Title *
-              </label>
-              <input
-                type="text"
-                value={newTask.title}
-                onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="What needs to be done?"
-                className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200"
-                maxLength={100}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
-                Priority
-              </label>
-              <select
-                value={newTask.priority}
-                onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
-                className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none text-surface-800 dark:text-surface-200"
-              >
-                <option value="low">Low Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="high">High Priority</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
-                Description (Optional)
-              </label>
-              <textarea
-                value={newTask.description}
-                onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Add more details about this task..."
-                rows={3}
-                className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200 resize-none"
-                maxLength={300}
-              />
-            </div>
-          </div>
-
-          <motion.button
-disabled={createLoading}
-            className="w-full sm:w-auto neu-button px-6 py-3 rounded-xl font-medium text-surface-800 dark:text-surface-200 flex items-center justify-center space-x-2"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-<ApperIcon name={createLoading ? "Loader2" : "Plus"} className={`w-5 h-5 ${createLoading ? "animate-spin" : ""}`} />
-<span>{createLoading ? 'Adding...' : 'Add Task'}</span>
-          </motion.button>
-        </form>
-      </motion.div>
 
       {/* Filter Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="flex flex-wrap gap-2 sm:gap-4"
+className="flex flex-wrap items-center justify-between gap-2 sm:gap-4"
       >
+<div className="flex flex-wrap gap-2 sm:gap-4">
         {[
-          { key: 'all', label: 'All Tasks', icon: 'ListTodo' },
+          { key: 'all', label: 'All Tasks', icon: 'List' },
           { key: 'active', label: 'Active', icon: 'Clock' },
           { key: 'completed', label: 'Completed', icon: 'CheckCircle' }
         ].map((tab) => (
@@ -349,8 +282,111 @@ disabled={createLoading}
             <span className="text-sm sm:text-base">{tab.label}</span>
           </motion.button>
         ))}
+</div>
+        
+        {/* Add Task Button */}
+        <motion.button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center space-x-2 px-4 py-2 rounded-xl font-medium bg-gradient-to-r from-primary to-secondary text-white shadow-lg transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ApperIcon name={showAddForm ? "X" : "Plus"} className="w-4 h-4" />
+          <span className="text-sm sm:text-base">{showAddForm ? 'Cancel' : 'Add Task'}</span>
+        </motion.button>
       </motion.div>
 
+{/* Add Task Form - Expandable */}
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="task-card rounded-2xl p-4 sm:p-6 lg:p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-r from-primary to-secondary rounded-xl">
+                  <ApperIcon name="Plus" className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-semibold text-surface-800 dark:text-surface-200">Add New Task</h2>
+              </div>
+
+              <form onSubmit={addTask} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
+                      Task Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="What needs to be done?"
+                      className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200"
+                      maxLength={100}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
+                      Priority
+                    </label>
+                    <select
+                      value={newTask.priority}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                      className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none text-surface-800 dark:text-surface-200"
+                    >
+                      <option value="low">Low Priority</option>
+                      <option value="medium">Medium Priority</option>
+                      <option value="high">High Priority</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={newTask.description}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Add more details about this task..."
+                      rows={3}
+                      className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200 resize-none"
+                      maxLength={300}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <motion.button
+                    type="submit"
+                    disabled={createLoading}
+                    className="neu-button px-6 py-3 rounded-xl font-medium text-surface-800 dark:text-surface-200 flex items-center justify-center space-x-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <ApperIcon name={createLoading ? "Loader2" : "Plus"} className={`w-5 h-5 ${createLoading ? "animate-spin" : ""}`} />
+                    <span>{createLoading ? 'Adding...' : 'Add Task'}</span>
+                  </motion.button>
+                  
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="px-6 py-3 bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-xl font-medium hover:bg-surface-300 dark:hover:bg-surface-600 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Tasks List */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
