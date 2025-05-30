@@ -66,7 +66,7 @@ const addTask = async (e) => {
         description: newTask.description.trim(),
         priority: newTask.priority,
         completed: false,
-        owner: user?.emailAddress || '',
+owner: user?.emailAddress || '',
         tags: ''
       }
 
@@ -438,7 +438,7 @@ updateLoading={updateLoading}
                             ? 'text-surface-500 dark:text-surface-400 line-through' 
                             : 'text-surface-800 dark:text-surface-200'
                         }`}>
-                          {task.title}
+{task?.title || 'Untitled Task'}
                         </h3>
                         
                         <div className="flex items-center space-x-2">
@@ -453,19 +453,19 @@ updateLoading={updateLoading}
                         </div>
                       </div>
 
-                      {task.description && (
+{task?.description && (
                         <p className={`text-sm mb-3 transition-all duration-300 ${
                           task.completed 
                             ? 'text-surface-400 dark:text-surface-500' 
                             : 'text-surface-600 dark:text-surface-400'
                         }`}>
-                          {task.description}
+{task?.description}
                         </p>
                       )}
 
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <p className="text-xs text-surface-400 dark:text-surface-500">
-                          Created {format(new Date(task.createdAt), 'MMM dd, yyyy • HH:mm')}
+Created {task?.createdAt ? format(new Date(task.createdAt), 'MMM dd, yyyy • HH:mm') : 'Unknown date'}
                         </p>
 
                         <div className="flex items-center space-x-2">
