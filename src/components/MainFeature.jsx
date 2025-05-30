@@ -400,10 +400,12 @@ className="flex flex-wrap items-center justify-between gap-2 sm:gap-4"
                 className={`task-card rounded-2xl p-4 sm:p-6 border-l-4 ${priorityColors[task.priority]}`}
               >
                 {editingTask === task.id ? (
-                  <EditTaskForm 
-                    task={task} 
-                    onSave={(updatedTask) => updateTask(task.id, updatedTask)}
-                    onCancel={() => setEditingTask(null)}
+<EditTaskForm
+task={task}
+onSave={(updatedTask) => updateTask(task.id, updatedTask)}
+onCancel={() => setEditingTask(null)}
+updateLoading={updateLoading}
+                    deleteLoading={deleteLoading}
                   />
                 ) : (
                   <div className="flex items-start space-x-3 sm:space-x-4">
@@ -502,7 +504,7 @@ className="flex flex-wrap items-center justify-between gap-2 sm:gap-4"
 }
 
 // Edit Task Form Component
-const EditTaskForm = ({ task, onSave, onCancel }) => {
+const EditTaskForm = ({ task, onSave, onCancel, updateLoading, deleteLoading }) => {
   const [editedTask, setEditedTask] = useState({
     title: task.title,
     description: task.description,
