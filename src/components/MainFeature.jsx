@@ -265,7 +265,7 @@ const updateTask = async (id, updatedTaskData) => {
         </div>
 
         <form onSubmit={addTask} className="space-y-4 sm:space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
                 Task Title *
@@ -294,20 +294,20 @@ const updateTask = async (id, updatedTaskData) => {
                 <option value="high">High Priority</option>
               </select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
-              Description (Optional)
-            </label>
-            <textarea
-              value={newTask.description}
-              onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Add more details about this task..."
-              rows={3}
-              className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200 resize-none"
-              maxLength={300}
-            />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-surface-700 dark:text-surface-300">
+                Description (Optional)
+              </label>
+              <textarea
+                value={newTask.description}
+                onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Add more details about this task..."
+                rows={3}
+                className="task-input w-full px-4 py-3 rounded-xl border-0 outline-none placeholder-surface-400 text-surface-800 dark:text-surface-200 resize-none"
+                maxLength={300}
+              />
+            </div>
           </div>
 
           <motion.button
