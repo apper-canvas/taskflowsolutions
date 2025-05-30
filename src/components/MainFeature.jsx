@@ -224,33 +224,6 @@ const updateTask = async (id, updatedTaskData) => {
           <p className="text-sm text-surface-600 dark:text-surface-400">Pending</p>
         </div>
       </motion.div>
-{/* User Info and Logout */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="task-card rounded-2xl p-4 sm:p-6 flex items-center justify-between"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-              <ApperIcon name="User" className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="font-medium text-surface-800 dark:text-surface-200">
-                Welcome, {user?.firstName || user?.emailAddress || 'User'}!
-              </p>
-              <p className="text-sm text-surface-600 dark:text-surface-400">
-                {user?.emailAddress}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-xl transition-colors text-sm font-medium"
-          >
-            Logout
-          </button>
-        </motion.div>
 
       {/* Add Task Form */}
 
