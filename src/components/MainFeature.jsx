@@ -1,75 +1,140 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import ApperIcon from './ApperIcon'
+import TaskService from '../services/TaskService'
+import { AuthContext } from '../App'
 
 const MainFeature = () => {
   const [tasks, setTasks] = useState([])
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' })
   const [filter, setFilter] = useState('all') // all, active, completed
   const [editingTask, setEditingTask] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+  const [updateLoading, setUpdateLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  
+  const { user, isAuthenticated } = useSelector((state) => state.user)
+  const { logout } = useContext(AuthContext)
+  const navigate = useNavigate()
 
-  // Load tasks from localStorage on component mount
+// Check authentication and redirect if needed
   useEffect(() => {
-    const savedTasks = localStorage.getItem('taskflow-tasks')
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks))
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
     }
-  }, [])
+  }, [isAuthenticated, navigate])
 
-  // Save tasks to localStorage whenever tasks change
+  // Load tasks from database on component mount
   useEffect(() => {
-    localStorage.setItem('taskflow-tasks', JSON.stringify(tasks))
-  }, [tasks])
+    if (isAuthenticated) {
+      loadTasks()
+    }
+  }, [isAuthenticated])
 
-  const addTask = (e) => {
+  const loadTasks = async () => {
+    setLoading(true)
+    try {
+      const fetchedTasks = await TaskService.fetchTasks()
+      setTasks(fetchedTasks)
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+      toast.error(error.message || 'Failed to load tasks')
+      setTasks([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+const addTask = async (e) => {
     e.preventDefault()
     if (!newTask.title.trim()) {
       toast.error('Please enter a task title!')
       return
     }
 
-    const task = {
-      id: Date.now().toString(),
-      title: newTask.title.trim(),
-      description: newTask.description.trim(),
-      priority: newTask.priority,
-      completed: false,
-      createdAt: new Date().toISOString()
-    }
+    setCreateLoading(true)
+    try {
+      const taskData = {
+        title: newTask.title.trim(),
+        description: newTask.description.trim(),
+        priority: newTask.priority,
+        completed: false,
+        owner: user?.emailAddress || '',
+        tags: ''
+      }
 
-    setTasks(prev => [task, ...prev])
-    setNewTask({ title: '', description: '', priority: 'medium' })
-    toast.success('Task added successfully!')
+      const createdTask = await TaskService.createTask(taskData)
+      setTasks(prev => [createdTask, ...prev])
+      setNewTask({ title: '', description: '', priority: 'medium' })
+      toast.success('Task added successfully!')
+    } catch (error) {
+      console.error('Error creating task:', error)
+      toast.error(error.message || 'Failed to create task')
+    } finally {
+      setCreateLoading(false)
+    }
   }
 
-  const toggleTask = (id) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id 
-        ? { ...task, completed: !task.completed }
-        : task
-    ))
-    
+const toggleTask = async (id) => {
     const task = tasks.find(t => t.id === id)
-    if (task) {
+    if (!task) return
+
+    setUpdateLoading(true)
+    try {
+      const updatedTaskData = {
+        ...task,
+        completed: !task.completed
+      }
+
+      const updatedTask = await TaskService.updateTask(id, updatedTaskData)
+      setTasks(prev => prev.map(t => 
+        t.id === id ? updatedTask : t
+      ))
+      
       toast.success(task.completed ? 'Task marked as incomplete!' : 'Task completed! 🎉')
+    } catch (error) {
+      console.error('Error updating task:', error)
+      toast.error(error.message || 'Failed to update task')
+    } finally {
+      setUpdateLoading(false)
     }
   }
 
-  const deleteTask = (id) => {
-    setTasks(prev => prev.filter(task => task.id !== id))
-    toast.success('Task deleted!')
+const deleteTask = async (id) => {
+    setDeleteLoading(true)
+    try {
+      await TaskService.deleteTask(id)
+      setTasks(prev => prev.filter(task => task.id !== id))
+      toast.success('Task deleted!')
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      toast.error(error.message || 'Failed to delete task')
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
-  const updateTask = (id, updatedTask) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id 
-        ? { ...task, ...updatedTask }
-        : task
-    ))
-    setEditingTask(null)
-    toast.success('Task updated!')
+const updateTask = async (id, updatedTaskData) => {
+    setUpdateLoading(true)
+    try {
+      const updatedTask = await TaskService.updateTask(id, updatedTaskData)
+      setTasks(prev => prev.map(task => 
+        task.id === id ? updatedTask : task
+      ))
+      setEditingTask(null)
+      toast.success('Task updated!')
+    } catch (error) {
+      console.error('Error updating task:', error)
+      toast.error(error.message || 'Failed to update task')
+    } finally {
+      setUpdateLoading(false)
+    }
   }
 
   const filteredTasks = tasks.filter(task => {
@@ -93,6 +158,37 @@ const MainFeature = () => {
     low: 'CheckCircle2'
   }
 
+// Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-surface-600 dark:text-surface-400">Loading tasks...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show authentication required if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-surface-800 dark:text-surface-200 mb-4">
+          Authentication Required
+        </h2>
+        <p className="text-surface-600 dark:text-surface-400 mb-6">
+          Please log in to access your tasks.
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          className="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
+        >
+          Go to Login
+        </button>
+      </div>
+    )
+  }
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Stats Cards */}
@@ -126,6 +222,33 @@ const MainFeature = () => {
           <p className="text-sm text-surface-600 dark:text-surface-400">Pending</p>
         </div>
       </motion.div>
+{/* User Info and Logout */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="task-card rounded-2xl p-4 sm:p-6 flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+              <ApperIcon name="User" className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-medium text-surface-800 dark:text-surface-200">
+                Welcome, {user?.firstName || user?.emailAddress || 'User'}!
+              </p>
+              <p className="text-sm text-surface-600 dark:text-surface-400">
+                {user?.emailAddress}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-xl transition-colors text-sm font-medium"
+          >
+            Logout
+          </button>
+        </motion.div>
 
       {/* Add Task Form */}
       <motion.div
@@ -188,13 +311,13 @@ const MainFeature = () => {
           </div>
 
           <motion.button
-            type="submit"
+disabled={createLoading}
             className="w-full sm:w-auto neu-button px-6 py-3 rounded-xl font-medium text-surface-800 dark:text-surface-200 flex items-center justify-center space-x-2"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <ApperIcon name="Plus" className="w-5 h-5" />
-            <span>Add Task</span>
+<ApperIcon name={createLoading ? "Loader2" : "Plus"} className={`w-5 h-5 ${createLoading ? "animate-spin" : ""}`} />
+<span>{createLoading ? 'Adding...' : 'Add Task'}</span>
           </motion.button>
         </form>
       </motion.div>
@@ -276,7 +399,7 @@ const MainFeature = () => {
                 ) : (
                   <div className="flex items-start space-x-3 sm:space-x-4">
                     <motion.button
-                      onClick={() => toggleTask(task.id)}
+disabled={updateLoading || deleteLoading}
                       className={`flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
                         task.completed
                           ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-500'
@@ -336,7 +459,7 @@ const MainFeature = () => {
                         <div className="flex items-center space-x-2">
                           <motion.button
                             onClick={() => setEditingTask(task.id)}
-                            className="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+disabled={updateLoading || deleteLoading}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -345,12 +468,11 @@ const MainFeature = () => {
                           
                           <motion.button
                             onClick={() => deleteTask(task.id)}
-                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+disabled={updateLoading || deleteLoading}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
                             <ApperIcon name="Trash2" className="w-4 h-4 text-surface-500 hover:text-red-500" />
-                          </motion.button>
                         </div>
                       </div>
                     </div>
@@ -421,15 +543,15 @@ const EditTaskForm = ({ task, onSave, onCancel }) => {
       <div className="flex items-center space-x-2">
         <motion.button
           type="submit"
-          className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all duration-300"
+disabled={updateLoading}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Save
+{updateLoading ? 'Saving...' : 'Save'}
         </motion.button>
         <motion.button
           type="button"
-          onClick={onCancel}
+disabled={updateLoading}
           className="px-4 py-2 bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium rounded-lg hover:bg-surface-300 dark:hover:bg-surface-600 transition-all duration-300"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
