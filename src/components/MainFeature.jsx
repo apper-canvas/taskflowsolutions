@@ -398,8 +398,9 @@ disabled={createLoading}
                   />
                 ) : (
                   <div className="flex items-start space-x-3 sm:space-x-4">
-                    <motion.button
-disabled={updateLoading || deleteLoading}
+<motion.button
+                      onClick={() => toggleTask(task.id)}
+                      disabled={updateLoading || deleteLoading}
                       className={`flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
                         task.completed
                           ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-emerald-500'
@@ -457,9 +458,10 @@ disabled={updateLoading || deleteLoading}
                         </p>
 
                         <div className="flex items-center space-x-2">
-                          <motion.button
+<motion.button
                             onClick={() => setEditingTask(task.id)}
-disabled={updateLoading || deleteLoading}
+                            disabled={updateLoading || deleteLoading}
+                            className="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -468,12 +470,15 @@ disabled={updateLoading || deleteLoading}
                           
                           <motion.button
                             onClick={() => deleteTask(task.id)}
-disabled={updateLoading || deleteLoading}
+                            disabled={updateLoading || deleteLoading}
+                            className="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
                             <ApperIcon name="Trash2" className="w-4 h-4 text-surface-500 hover:text-red-500" />
+                          </motion.button>
                         </div>
+                          
                       </div>
                     </div>
                   </div>
@@ -541,17 +546,19 @@ const EditTaskForm = ({ task, onSave, onCancel }) => {
       </div>
 
       <div className="flex items-center space-x-2">
-        <motion.button
+<motion.button
           type="submit"
-disabled={updateLoading}
+          disabled={updateLoading}
+          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-all duration-300"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-{updateLoading ? 'Saving...' : 'Save'}
+          {updateLoading ? 'Saving...' : 'Save'}
         </motion.button>
         <motion.button
           type="button"
-disabled={updateLoading}
+          onClick={onCancel}
+          disabled={updateLoading}
           className="px-4 py-2 bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium rounded-lg hover:bg-surface-300 dark:hover:bg-surface-600 transition-all duration-300"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
