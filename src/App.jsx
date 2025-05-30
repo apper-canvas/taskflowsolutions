@@ -126,6 +126,7 @@ function App() {
           <Route path="/callback" element={<Callback />} />
           <Route path="/error" element={<ErrorPage />} />
           <Route path="/" element={<Home />} />
+<Route path="/projects" element={<Projects />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ToastContainer

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useState, useEffect, useContext, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSelector } from 'react-redux'
@@ -94,9 +95,21 @@ const Home = () => {
             </div>
           </motion.div>
 
-{/* User Profile and Controls */}
-          <div className="flex items-center space-x-3">
-            {/* Theme Toggle */}
+<div className="flex items-center space-x-3">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link
+                to="/projects"
+                className="glass-effect p-3 rounded-2xl hover:bg-white/30 transition-all duration-300 group flex items-center space-x-2"
+              >
+                <ApperIcon name="Building" className="w-6 h-6 text-primary group-hover:text-primary-light" />
+                <span className="hidden sm:block text-sm font-medium text-surface-700 dark:text-surface-300 group-hover:text-primary">
+                  Projects
+                </span>
+              </Link>
+            </motion.div>
             <motion.button
               onClick={toggleDarkMode}
               className="glass-effect p-3 rounded-2xl hover:bg-white/30 transition-all duration-300 group"
